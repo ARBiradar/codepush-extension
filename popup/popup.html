@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CodePush</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">CodePush</span>
+      </div>
+      <div class="status-dot" id="statusDot" title="Not configured"></div>
+    </div>
+
+    <!-- User Card (shown when connected) -->
+    <div class="user-card hidden" id="userCard">
+      <img class="avatar" id="userAvatar" src="" alt="avatar" />
+      <div class="user-info">
+        <div class="username" id="userName">—</div>
+        <div class="user-sub">Connected to GitHub</div>
+      </div>
+      <div class="push-count" id="pushCount">0 pushes</div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="settings">⚙️ Settings</button>
+      <button class="tab" data-tab="history">📜 History</button>
+    </div>
+
+    <!-- Settings Tab -->
+    <div class="tab-content" id="tab-settings">
+      <div class="section-label">GitHub Configuration</div>
+
+      <div class="field">
+        <label>Personal Access Token</label>
+        <div class="input-row">
+          <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxx" />
+          <button class="icon-btn" id="toggleToken" title="Show/hide">👁</button>
+        </div>
+        <div class="hint">
+          <a href="https://github.com/settings/tokens/new?scopes=repo" target="_blank">Generate token</a>
+          — needs <code>repo</code> scope
+        </div>
+      </div>
+
+      <div class="field">
+        <label>GitHub Username</label>
+        <input type="text" id="githubUsername" placeholder="your-username" />
+      </div>
+
+      <div class="field">
+        <label>Repository Name</label>
+        <input type="text" id="repoName" placeholder="coding-solutions" />
+        <div class="hint">Will be created automatically if it doesn't exist</div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="section-label">AI README — Gemini (Free!)</div>
+
+      <div class="field">
+        <label>Google Gemini API Key</label>
+        <div class="input-row">
+          <input type="password" id="anthropicKey" placeholder="AIzaSyxxxxxxxxxxxx" />
+          <button class="icon-btn" id="toggleAnthropicKey" title="Show/hide">👁</button>
+        </div>
+        <div class="hint">
+          <a href="https://aistudio.google.com/app/apikey" target="_blank">Get FREE key at aistudio.google.com</a>
+          — no credit card needed! Leave blank for basic README.
+        </div>
+      </div>
+
+      <button class="btn-primary" id="saveBtn">Save Settings</button>
+      <button class="btn-secondary" id="validateBtn">🔗 Test Connection</button>
+
+      <div class="msg hidden" id="msg"></div>
+    </div>
+
+    <!-- History Tab -->
+    <div class="tab-content hidden" id="tab-history">
+      <div class="section-label">Recent Pushes</div>
+      <div id="historyList" class="history-list">
+        <div class="empty-state">No pushes yet. Solve a problem to get started! 🚀</div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      Auto-push is <span class="badge-on">ON</span> for all platforms
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

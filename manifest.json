@@ -1,0 +1,65 @@
+{
+  "manifest_version": 3,
+  "name": "CodePush — Auto Push to GitHub",
+  "version": "1.0.0",
+  "description": "Auto-push your accepted solutions from LeetCode, GFG, CodeChef, HackerRank & Codeforces to GitHub with AI-generated README",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "notifications"
+  ],
+  "host_permissions": [
+    "https://leetcode.com/*",
+    "https://www.geeksforgeeks.org/*",
+    "https://www.codechef.com/*",
+    "https://www.hackerrank.com/*",
+    "https://codeforces.com/*",
+    "https://api.github.com/*",
+    "https://generativelanguage.googleapis.com/*"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://leetcode.com/*"],
+      "js": ["content-scripts/leetcode.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.geeksforgeeks.org/*"],
+      "js": ["content-scripts/gfg.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.codechef.com/*"],
+      "js": ["content-scripts/codechef.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.hackerrank.com/*"],
+      "js": ["content-scripts/hackerrank.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://codeforces.com/*"],
+      "js": ["content-scripts/codeforces.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
