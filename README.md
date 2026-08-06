@@ -4,7 +4,7 @@ Auto-detect accepted solutions from **LeetCode, GeeksForGeeks, CodeChef, HackerR
 
 ---
 
-## 🚀 How to Install & Configure 
+## 🚀 How to Install & Configure
 
 ### Step 1 — Get Your GitHub Personal Access Token
 1. Go to → [GitHub Token Settings](https://github.com/settings/tokens/new)
