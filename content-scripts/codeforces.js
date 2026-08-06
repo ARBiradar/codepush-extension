@@ -16,15 +16,18 @@
       const text = cell.textContent.trim();
       if (text.startsWith("Accepted") || text === "OK" || text.includes("Correct") || text.includes("Verdict: OK")) {
         const row = cell.closest("tr");
-        const submissionId = row?.querySelector("td:first-child")?.textContent?.trim() || 
-                             row?.getAttribute("data-submission-id") ||
-                             getSubmissionIdFromPage();
-        
         const code = extractCode();
         if (!code) continue; // Skip if code not found
 
+        // Extract problem title
+        const problemLink = row?.querySelector("td a[href*='/problem/'], td a[href*='contest']");
+        const problemTitle = problemLink?.textContent?.trim() ||
+                             document.querySelector(".problem-statement .title")?.textContent?.trim() ||
+                             document.title.replace(" - Codeforces", "").trim();
+        const cleanTitle = problemTitle.replace(/\s+/g, "-").toLowerCase();
+
         const codeHash = hashCode(code);
-        const uniqueKey = `Codeforces:${submissionId || codeHash}`;
+        const uniqueKey = `Codeforces:${cleanTitle}:${codeHash}`;
 
         // 1. Synchronous duplicate check
         if (pendingPushes.has(uniqueKey)) {

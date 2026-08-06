@@ -15,12 +15,16 @@
       return;
     }
 
-    const submissionId = getSubmissionId();
     const code = extractCode();
     if (!code) return;
 
+    // Extract problem title
+    const titleEl = document.querySelector(".challenge-name, h1.challenge-title, [class*='challenge-name'], h1");
+    const problemTitle = titleEl?.textContent?.trim() || document.title.replace(" | HackerRank", "").trim();
+    const cleanTitle = problemTitle.replace(/\s+/g, "-").toLowerCase();
+
     const codeHash = hashCode(code);
-    const uniqueKey = `HackerRank:${submissionId || codeHash}`;
+    const uniqueKey = `HackerRank:${cleanTitle}:${codeHash}`;
 
     // 1. Synchronous duplicate check
     if (pendingPushes.has(uniqueKey)) {

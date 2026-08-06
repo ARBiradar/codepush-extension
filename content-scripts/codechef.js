@@ -15,12 +15,18 @@
       return;
     }
 
-    const submissionId = getSubmissionId();
     const code = extractCode();
     if (!code) return;
 
+    // Extract problem title
+    const pathMatch = window.location.pathname.match(/\/problems\/([^/]+)/);
+    const problemCode = pathMatch ? pathMatch[1] : null;
+    const titleEl = document.querySelector("h1.problem-name, [class*='problem-title'], h1, [id*='problem-title']");
+    const problemTitle = titleEl?.textContent?.trim() || problemCode || "Unknown-Problem";
+    const cleanTitle = problemTitle.replace(/\s+/g, "-").toLowerCase();
+
     const codeHash = hashCode(code);
-    const uniqueKey = `CodeChef:${submissionId || codeHash}`;
+    const uniqueKey = `CodeChef:${cleanTitle}:${codeHash}`;
 
     // 1. Synchronous check to prevent race conditions
     if (pendingPushes.has(uniqueKey)) {

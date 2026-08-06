@@ -19,13 +19,21 @@
       return;
     }
 
-    const submissionId = getSubmissionId();
     const code = extractCode();
     if (!code) return; // No code, can't push
 
+    // Extract problem title synchronously
+    const pathMatch = window.location.pathname.match(/\/problems\/([^/]+)/);
+    const slug = pathMatch ? pathMatch[1] : null;
+    const titleEl = document.querySelector('[data-cy="question-title"]') ||
+                    document.querySelector(".text-title-large") ||
+                    document.querySelector("h1");
+    const rawTitle = titleEl?.textContent?.trim() || slug?.replace(/-/g, " ") || "Unknown";
+    const problemTitle = rawTitle.replace(" - LeetCode", "").trim();
+    const cleanTitle = problemTitle.replace(/\s+/g, "-").toLowerCase();
+
     const codeHash = hashCode(code);
-    // Use submission ID if available, otherwise fall back to code hash (perfect for identical duplicate checks)
-    const uniqueKey = `LeetCode:${submissionId || codeHash}`;
+    const uniqueKey = `LeetCode:${cleanTitle}:${codeHash}`;
 
     // 1. Synchronous check to avoid triggering again while async checks/pushes are running
     if (pendingPushes.has(uniqueKey)) {

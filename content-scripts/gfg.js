@@ -16,12 +16,18 @@
       return;
     }
 
-    const submissionId = getGfgSubmissionId();
     const code = extractCode();
     if (!code) return; // No code, can't push
 
+    // Extract problem title
+    const titleEl = document.querySelector(".problems_header_content__title__L2cB2") ||
+                    document.querySelector("h1") ||
+                    document.querySelector('[class*="problem-title"]');
+    const problemTitle = titleEl?.textContent?.trim() || document.title.replace(" | Practice | GeeksforGeeks", "").trim();
+    const cleanTitle = problemTitle.replace(/\s+/g, "-").toLowerCase();
+
     const codeHash = hashCode(code);
-    const uniqueKey = `GeeksForGeeks:${submissionId || codeHash}`;
+    const uniqueKey = `GeeksForGeeks:${cleanTitle}:${codeHash}`;
 
     // 1. Synchronous check to avoid duplicate triggers in same event loop/page state
     if (pendingPushes.has(uniqueKey)) {
