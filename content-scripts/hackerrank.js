@@ -50,10 +50,14 @@
     const congratsEl = document.querySelector('[class*="congrats"], [class*="success"], .testcase-status-accepted, .all-testcases-passed');
     const text = (successEl?.textContent || congratsEl?.textContent || "").toLowerCase();
 
-    if (text.includes("congratulations") || 
-        text.includes("accepted") || 
-        text.includes("all test cases passed") || 
-        text.includes("submission successful")) {
+    // Must NOT match sample test pass
+    if (text.includes("sample") || text.includes("sample test")) {
+      return false;
+    }
+
+    if (text.includes("all test cases passed") || 
+        text.includes("submission successful") ||
+        (text.includes("congratulations") && !text.includes("sample"))) {
       return true;
     }
 
@@ -68,7 +72,8 @@
 
     // Check DOM for congratulations or all test cases passed
     const bodyText = document.body.innerText || "";
-    if (bodyText.includes("Congratulations!") || bodyText.includes("All test cases passed")) {
+    if (bodyText.includes("All test cases passed") || 
+        (bodyText.includes("Congratulations!") && !bodyText.includes("sample test") && !bodyText.includes("sample cases"))) {
       return true;
     }
 

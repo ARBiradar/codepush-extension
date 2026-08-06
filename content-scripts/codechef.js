@@ -51,7 +51,9 @@
     const verdictEls = document.querySelectorAll('[class*="verdict"], [class*="result"], .ac, .AC, [class*="status"]');
     for (const el of verdictEls) {
       const text = el.textContent.trim().toUpperCase();
-      if (text === "AC" || text === "ACCEPTED" || text.includes("ACCEPTED") || text.includes("CORRECT")) {
+      // Ensure we don't trigger on sample test panels
+      if ((text === "AC" || text === "ACCEPTED" || text.includes("ACCEPTED") || text.includes("CORRECT")) && 
+          !el.closest(".sample-tests") && !el.closest("[class*='sample']")) {
         return true;
       }
     }
@@ -60,14 +62,16 @@
     const banner = document.querySelector('[class*="success-banner"], [class*="accepted-banner"], [class*="submission-status"]');
     if (banner) {
       const text = banner.textContent.toLowerCase();
-      if (text.includes("accepted") || text.includes("correct answer") || text.includes("ac") || text.includes("successfully")) {
+      if ((text.includes("accepted") || text.includes("correct answer") || text.includes("ac") || text.includes("successfully")) && 
+          !text.includes("sample")) {
         return true;
       }
     }
 
     // Scan body for typical success strings
     const bodyText = document.body.innerText || "";
-    if (bodyText.includes("Submission Successful") || bodyText.includes("Accepted")) {
+    if ((bodyText.includes("Submission Successful") || bodyText.includes("Accepted")) && 
+        !bodyText.includes("sample test cases passed") && !bodyText.includes("Sample Run")) {
       return true;
     }
 

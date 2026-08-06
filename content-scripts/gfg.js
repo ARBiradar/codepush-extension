@@ -48,6 +48,12 @@
   }
 
   function checkGfgAccepted() {
+    // Scan page text for highly specific GFG submission success phrases
+    const text = document.body.innerText || "";
+    if (text.includes("Problem Solved Successfully") || text.includes("Total Points Scored")) {
+      return true;
+    }
+
     // Check text of status and result containers
     const resultEl = document.querySelector(".problems_header_statusContainer__zVAKM") ||
                      document.querySelector('[class*="result"]') ||
@@ -60,16 +66,15 @@
 
     const resultText = (resultEl?.textContent || successEl?.textContent || "").toLowerCase();
 
+    // Filter out compilation warnings, execution errors, or sample runs
+    if (resultText.includes("sample") || resultText.includes("compilation") || resultText.includes("warning")) {
+      return false;
+    }
+
     if (resultText.includes("problem solved") || 
         resultText.includes("correct answer") || 
         resultText.includes("accepted") || 
         resultText.includes("correct")) {
-      return true;
-    }
-
-    // Search page text for "Problem Solved Successfully" or "Correct Answer"
-    const text = document.body.innerText || "";
-    if (text.includes("Problem Solved Successfully") || text.includes("Correct Answer")) {
       return true;
     }
 

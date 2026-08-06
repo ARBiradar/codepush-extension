@@ -55,6 +55,15 @@
   }
 
   function checkLeetCodeAccepted() {
+    // Check if it's a full submission by verifying performance metrics
+    const bodyText = document.body.innerText || "";
+    const isFullSubmission = bodyText.includes("beats") || 
+                             bodyText.includes("Runtime Distribution") || 
+                             bodyText.includes("Memory Distribution") ||
+                             window.location.href.includes("/submissions/");
+
+    if (!isFullSubmission) return false;
+
     // e2e locator for submission result
     const e2e = document.querySelector('[data-e2e-locator="submission-result"]');
     if (e2e && e2e.textContent.trim() === "Accepted") return true;
