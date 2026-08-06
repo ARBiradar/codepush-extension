@@ -2,21 +2,30 @@
 
 import { pushToGitHub } from "../utils/github.js";
 import { generateReadme, generateFallbackReadme } from "../utils/claude.js";
-import { getSettings, incrementPushCount } from "../utils/storage.js";
+import { getSettings, incrementPushCount, isAlreadyPushed, markAsPushed } from "../utils/storage.js";
+
+// In-memory set to prevent concurrent double-triggers in the background worker
+const currentlyPushing = new Set();
 
 // Listen for messages from content scripts
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "SOLUTION_ACCEPTED") {
     handleSolutionPush(message.data)
       .then((result) => sendResponse({ success: true, url: result }))
-      .catch((err) => sendResponse({ success: false, error: err.message }));
+      .catch((err) => {
+        console.error("[CodePush] Error during solution push:", err);
+        sendResponse({ success: false, error: err.message });
+      });
     return true; // keep message channel open for async
   }
 
   if (message.type === "MANUAL_PUSH") {
     handleSolutionPush(message.data)
       .then((result) => sendResponse({ success: true, url: result }))
-      .catch((err) => sendResponse({ success: false, error: err.message }));
+      .catch((err) => {
+        console.error("[CodePush] Error during manual push:", err);
+        sendResponse({ success: false, error: err.message });
+      });
     return true;
   }
 
@@ -35,50 +44,78 @@ async function handleSolutionPush(data) {
     throw new Error("Please configure GitHub settings in the extension popup first.");
   }
 
-  // Show notification: starting push
-  showNotification("⏳ CodePush", `Pushing ${data.problemTitle} to GitHub...`);
+  const uniqueKey = data.uniqueKey || `${data.platform}:${data.problemTitle}`;
 
-  let readme;
-  try {
-    if (settings.anthropicKey) {
-      readme = await generateReadme({
-        apiKey: settings.anthropicKey,
-        platform: data.platform,
-        problemTitle: data.problemTitle,
-        problemDescription: data.problemDescription,
-        code: data.code,
-        language: data.language,
-        difficulty: data.difficulty,
-      });
-    } else {
-      readme = generateFallbackReadme(data);
-    }
-  } catch (err) {
-    console.warn("README generation failed, using fallback:", err);
-    readme = generateFallbackReadme(data);
+  // 1. Centralized double-push prevention check
+  if (currentlyPushing.has(uniqueKey)) {
+    throw new Error("Push is already in progress for this solution.");
   }
 
-  const repoUrl = await pushToGitHub({
-    token: settings.githubToken,
-    repoName: settings.repoName,
-    username: settings.githubUsername,
-    platform: data.platform,
-    problemTitle: data.problemTitle,
-    code: data.code,
-    language: data.language,
-    readme,
-  });
+  const alreadyPushed = await isAlreadyPushed(uniqueKey);
+  if (alreadyPushed) {
+    console.log(`[CodePush] Key ${uniqueKey} has already been pushed. Skipping.`);
+    throw new Error("This solution has already been successfully pushed.");
+  }
 
-  await incrementPushCount({
-    platform: data.platform,
-    title: data.problemTitle,
-    url: repoUrl,
-    date: new Date().toISOString(),
-    language: data.language,
-  });
+  currentlyPushing.add(uniqueKey);
 
-  showNotification("✅ CodePush — Success!", `${data.problemTitle} pushed to GitHub!`);
-  return repoUrl;
+  try {
+    // Show notification: starting push
+    showNotification("⏳ CodePush", `Pushing ${data.problemTitle} to GitHub...`);
+
+    let readme;
+    try {
+      // Use anthropicKey (which holds the user's Gemini key in settings) for AI README
+      if (settings.anthropicKey) {
+        readme = await generateReadme({
+          apiKey: settings.anthropicKey,
+          platform: data.platform,
+          problemTitle: data.problemTitle,
+          problemDescription: data.problemDescription,
+          code: data.code,
+          language: data.language,
+          difficulty: data.difficulty,
+        });
+      } else {
+        readme = generateFallbackReadme(data);
+      }
+    } catch (err) {
+      console.warn("AI README generation failed, using fallback:", err);
+      readme = generateFallbackReadme(data);
+    }
+
+    const repoUrl = await pushToGitHub({
+      token: settings.githubToken,
+      repoName: settings.repoName,
+      username: settings.githubUsername,
+      platform: data.platform,
+      problemTitle: data.problemTitle,
+      code: data.code,
+      language: data.language,
+      readme,
+    });
+
+    // Save success in local storage
+    await markAsPushed(uniqueKey);
+
+    // Save metadata history
+    await incrementPushCount({
+      platform: data.platform,
+      title: data.problemTitle,
+      url: repoUrl,
+      date: new Date().toISOString(),
+      language: data.language,
+    });
+
+    showNotification("✅ CodePush — Success!", `${data.problemTitle} pushed to GitHub!`);
+    return repoUrl;
+  } catch (err) {
+    // Sanitize any potential token/key exposure in error messages
+    const sanitizedError = sanitizeError(err, settings);
+    throw new Error(sanitizedError);
+  } finally {
+    currentlyPushing.delete(uniqueKey);
+  }
 }
 
 async function validateSettings() {
@@ -106,4 +143,18 @@ function showNotification(title, message) {
     title,
     message,
   });
+}
+
+function sanitizeError(err, settings) {
+  let message = err.message || String(err);
+  if (settings.githubToken) {
+    message = message.replace(new RegExp(settings.githubToken, "g"), "[GITHUB_TOKEN]");
+  }
+  if (settings.anthropicKey) {
+    message = message.replace(new RegExp(settings.anthropicKey, "g"), "[AI_API_KEY]");
+  }
+  // General pattern matching for safety
+  message = message.replace(/ghp_[a-zA-Z0-9]{36}/g, "[GITHUB_TOKEN]");
+  message = message.replace(/AIzaSy[a-zA-Z0-9_-]{33}/g, "[GEMINI_API_KEY]");
+  return message;
 }
