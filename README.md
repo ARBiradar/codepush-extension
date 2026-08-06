@@ -124,4 +124,4 @@ We welcome contributions to expand CodePush support! Future plans include:
 - **Custom Commit Messages**: Ability to change the default git commit message formats.
 
 ---
-Built with ❤️ using Chrome Extension MV3 + GitHub REST API + Gemini AI
+Built with ❤️ using Chrome Extension MV3 + GitHub REST API 
